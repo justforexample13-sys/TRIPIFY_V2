@@ -1,0 +1,16 @@
+project_id = "hhugdbvbcrarpakvwjsk"
+
+[functions.search-airports]
+verify_jwt = false
+
+[functions.search-flights]
+verify_jwt = false
+
+[functions.amadeus-auth]
+verify_jwt = false
+
+[functions.search-cities]
+verify_jwt = false
+
+[functions.search-hotels]
+verify_jwt = false
