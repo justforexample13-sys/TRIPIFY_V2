@@ -20,13 +20,13 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/70" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
       </div>
-      
+
       {/* Glow Effects */}
       <div className="hero-glow top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2" />
       <div className="hero-glow bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 opacity-50" />
-      
+
       {/* Grid Pattern */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: `linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
@@ -47,7 +47,7 @@ const HeroSection = () => {
             <h1 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight mb-6">
               <span className="text-foreground">Explore the World with</span>
               <br />
-              <span className="gradient-text">Trpify</span>
+              <span className="gradient-text">Tripify</span>
             </h1>
             <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto">
               Book flights and hotels at unbeatable prices. Your dream destination is just a few clicks away.
