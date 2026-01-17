@@ -25,14 +25,6 @@ const HotelSearchForm = () => {
   const [isGuestOpen, setIsGuestOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const popularCities: City[] = [
-    { code: 'NYC', name: 'New York', country: 'USA', countryName: 'United States' },
-    { code: 'LON', name: 'London', country: 'UK', countryName: 'United Kingdom' },
-    { code: 'PAR', name: 'Paris', country: 'France', countryName: 'France' },
-    { code: 'DXB', name: 'Dubai', country: 'UAE', countryName: 'United Arab Emirates' },
-    { code: 'TYO', name: 'Tokyo', country: 'Japan', countryName: 'Japan' },
-  ];
-
   const handleSearch = () => {
     setFormError(null);
 
@@ -75,7 +67,6 @@ const HotelSearchForm = () => {
               setFormError(null);
             }}
             label="Destination"
-            suggestedOptions={popularCities}
           />
         </div>
 

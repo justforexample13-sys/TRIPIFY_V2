@@ -15,7 +15,7 @@ export const useCitySearch = (query: string, debounceMs = 300) => {
   const [lastQuery, setLastQuery] = useState<string>("");
 
   const searchCities = useCallback(async (searchQuery: string) => {
-    if (!searchQuery || searchQuery.length < 1) {
+    if (!searchQuery || searchQuery.length < 2) {
       setCities([]);
       return;
     }

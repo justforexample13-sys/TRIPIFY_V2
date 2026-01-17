@@ -29,7 +29,7 @@ const AirportAutocomplete = ({
   const { airports, isLoading } = useAirportSearch(inputValue);
 
   // Combine search results with suggested options when input is empty
-  const displayOptions = inputValue.length < 1 && suggestedOptions.length > 0
+  const displayOptions = inputValue.length < 2 && suggestedOptions.length > 0
     ? suggestedOptions
     : airports;
 
@@ -83,7 +83,7 @@ const AirportAutocomplete = ({
       {/* Dropdown */}
       {isOpen && displayOptions.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-elevated overflow-hidden">
-          {inputValue.length < 1 && suggestedOptions.length > 0 && (
+          {inputValue.length < 2 && suggestedOptions.length > 0 && (
             <div className="px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
               Popular Destinations
             </div>

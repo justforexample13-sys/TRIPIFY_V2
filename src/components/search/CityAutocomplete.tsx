@@ -9,7 +9,6 @@ interface CityAutocompleteProps {
   onInputChange?: (value: string) => void;
   placeholder?: string;
   label: string;
-  suggestedOptions?: City[];
 }
 
 const CityAutocomplete = ({
@@ -18,17 +17,12 @@ const CityAutocomplete = ({
   onInputChange,
   placeholder = "City, hotel, or landmark",
   label,
-  suggestedOptions = [],
 }: CityAutocompleteProps) => {
   const [inputValue, setInputValue] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const { cities, isLoading } = useCitySearch(inputValue);
-
-  const displayOptions = inputValue.length < 1 && suggestedOptions.length > 0
-    ? suggestedOptions
-    : cities;
 
   useEffect(() => {
     setInputValue(value);
@@ -77,17 +71,12 @@ const CityAutocomplete = ({
       </div>
 
       {/* Dropdown */}
-      {isOpen && displayOptions.length > 0 && (
+      {isOpen && cities.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-elevated overflow-hidden">
-          {inputValue.length < 1 && suggestedOptions.length > 0 && (
-            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
-              Popular Destinations
-            </div>
-          )}
           <div className="max-h-64 overflow-y-auto">
-            {displayOptions.map((city, index) => (
+            {cities.map((city) => (
               <button
-                key={`${city.code}-${city.name}-${index}`}
+                key={`${city.code}-${city.country || city.countryName || ''}-${city.name}`}
                 onClick={() => handleSelect(city)}
                 className={cn(
                   "w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors",
@@ -105,11 +94,9 @@ const CityAutocomplete = ({
                     {city.countryName || city.country}
                   </p>
                 </div>
-                {city.code && city.code.length === 3 && (
-                  <span className="text-sm font-medium text-muted-foreground shrink-0">
-                    {city.code}
-                  </span>
-                )}
+                <span className="text-sm font-medium text-muted-foreground shrink-0">
+                  {city.code}
+                </span>
               </button>
             ))}
           </div>
