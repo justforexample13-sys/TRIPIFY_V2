@@ -59,9 +59,9 @@ export default async function handler(req, res) {
       c.country.toLowerCase().includes(keyword)
     );
 
-    // If query is very short, just return local matches
-    if (keyword.length < 2) {
-      return res.json({ cities: localMatches.length > 0 ? localMatches : POPULAR_CITIES.slice(0, 10) });
+    // If query is empty, just return top popular cities
+    if (keyword.length === 0) {
+      return res.json({ cities: POPULAR_CITIES.slice(0, 10) });
     }
 
     const apiKey = process.env.SERPAPI_KEY;
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
 
     let mapped = [];
     try {
-      const response = await axios.get('https://serpapi.com/search.json', { params, timeout: 3000 });
+      const response = await axios.get('https://serpapi.com/search.json', { params, timeout: 5000 });
       const results = response.data;
       const suggestions = results.suggestions || [];
 
@@ -98,13 +98,20 @@ export default async function handler(req, res) {
       mapped = localMatches;
     }
 
-    // Merge API results with local matches
-    const finalResults = [...localMatches];
-    mapped.forEach(apiItem => {
-      if (!finalResults.find(l => l.code === apiItem.code)) {
-        finalResults.push(apiItem);
+    // Merge: Prioritize API results
+    const resultsMap = new Map();
+
+    mapped.forEach(item => {
+      if (item.code) resultsMap.set(item.code, item);
+    });
+
+    localMatches.forEach(item => {
+      if (!resultsMap.has(item.code)) {
+        resultsMap.set(item.code, item);
       }
     });
+
+    const finalResults = Array.from(resultsMap.values());
 
     // Cache the result
     cache.set(keyword, { data: finalResults, timestamp: Date.now() });

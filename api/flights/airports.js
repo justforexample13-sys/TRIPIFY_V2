@@ -76,9 +76,9 @@ export default async function handler(req, res) {
       a.address.cityName.toLowerCase().includes(keyword)
     );
 
-    // If query is very short, just return local matches
-    if (keyword.length < 2) {
-      return res.json({ data: localMatches.length > 0 ? localMatches : POPULAR_AIRPORTS.slice(0, 10) });
+    // If query is empty, just return top popular
+    if (keyword.length === 0) {
+      return res.json({ data: POPULAR_AIRPORTS.slice(0, 10) });
     }
 
     const apiKey = process.env.SERPAPI_KEY;
@@ -98,23 +98,25 @@ export default async function handler(req, res) {
 
     let mapped = [];
     try {
-      const response = await axios.get('https://serpapi.com/search.json', { params, timeout: 3000 });
+      const response = await axios.get('https://serpapi.com/search.json', { params, timeout: 5000 });
       const results = response.data;
       const suggestions = results.suggestions || [];
 
       mapped = suggestions.map(item => {
-        const isIata = item.id && item.id.length === 3;
+        // Use the ID as iataCode if it looks like one, or just keep it as is
+        // SerpApi IDs can be cities (PAR) or specific airports (CDG)
+        const id = item.id || '';
         return {
-          id: item.id,
+          id: id,
           name: item.title,
-          detailedName: isIata ? `${item.title} (${item.id})` : item.title,
-          iataCode: isIata ? item.id : '',
+          detailedName: id ? `${item.title} (${id})` : item.title,
+          iataCode: id, // Don't restrict to 3 letters here, let the frontend decide
           address: {
             cityName: item.subtitle ? item.subtitle.split(',')[0].trim() : item.title,
             countryName: item.subtitle ? item.subtitle.split(',').pop().trim() : ''
           },
-          skyId: item.id,
-          entityId: item.id
+          skyId: id,
+          entityId: id
         };
       });
     } catch (apiErr) {
@@ -122,13 +124,23 @@ export default async function handler(req, res) {
       mapped = localMatches;
     }
 
-    // Merge API results with local matches, avoiding duplicates
-    const finalResults = [...localMatches];
-    mapped.forEach(apiItem => {
-      if (!finalResults.find(l => l.id === apiItem.id)) {
-        finalResults.push(apiItem);
+    // Merge: Prioritize API results as requested by user ("fetch from api then add")
+    // Use a Map to de-duplicate by ID
+    const resultsMap = new Map();
+
+    // Add API matches first
+    mapped.forEach(item => {
+      if (item.id) resultsMap.set(item.id, item);
+    });
+
+    // Add local matches if they aren't already there
+    localMatches.forEach(item => {
+      if (!resultsMap.has(item.id)) {
+        resultsMap.set(item.id, item);
       }
     });
+
+    const finalResults = Array.from(resultsMap.values());
 
     // Cache result
     cache.set(keyword, { data: finalResults, timestamp: Date.now() });

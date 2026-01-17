@@ -6,53 +6,59 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { query } = await req.json();
-    console.log('Searching airports for:', query);
-    
-    if (!query || query.length < 2) {
+    console.log('Searching airports via SerpApi for:', query);
+
+    if (!query) {
       return new Response(JSON.stringify({ airports: [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const apiKey = Deno.env.get('AVIATIONSTACK_API_KEY');
+    const apiKey = Deno.env.get('SERPAPI_KEY');
     if (!apiKey) {
-      throw new Error('AVIATIONSTACK_API_KEY not configured');
+      throw new Error('SERPAPI_KEY not configured');
     }
 
-    // Search airports using aviationstack API
-    const response = await fetch(
-      `http://api.aviationstack.com/v1/airports?access_key=${apiKey}&search=${encodeURIComponent(query)}&limit=10`
-    );
+    const params = new URLSearchParams({
+      engine: 'google_flights_autocomplete',
+      q: query,
+      api_key: apiKey,
+      hl: 'en',
+      gl: 'us'
+    });
 
+    const url = `https://serpapi.com/search.json?${params.toString()}`;
+
+    const response = await fetch(url);
     if (!response.ok) {
-      console.error('API error:', response.status, await response.text());
-      throw new Error('Failed to fetch airports');
+      throw new Error(`SerpApi error: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('Airports API response:', JSON.stringify(data).substring(0, 500));
+    const results = await response.json();
+    const suggestions = results.suggestions || [];
 
-    const airports = (data.data || []).map((airport: any) => ({
-      iata: airport.iata_code,
-      name: airport.airport_name,
-      city: airport.municipality || airport.city || airport.airport_name,
-      country: airport.country_name,
-    })).filter((a: any) => a.iata);
+    const airports = suggestions.map((item: any) => {
+      const id = item.id || '';
+      return {
+        iata: id,
+        name: item.title,
+        city: item.subtitle ? item.subtitle.split(',')[0].trim() : item.title,
+        country: item.subtitle ? item.subtitle.split(',').pop().trim() : '',
+      };
+    }).filter((a: any) => a.iata);
 
     return new Response(JSON.stringify({ airports }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error('Error in search-airports:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message, airports: [] }), {
+    return new Response(JSON.stringify({ error: error.message, airports: [] }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

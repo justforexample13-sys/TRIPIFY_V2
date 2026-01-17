@@ -49,7 +49,7 @@ serve(async (req) => {
       countryName: item.subtitle || '',
       skyId: item.id,
       entityId: item.id
-    })).filter((item: any) => item.code);
+    }));
 
     return new Response(JSON.stringify({ cities }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

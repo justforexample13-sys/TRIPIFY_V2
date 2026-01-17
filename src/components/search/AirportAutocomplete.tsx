@@ -43,12 +43,13 @@ const AirportAutocomplete = ({
     );
 
     // De-duplicate API results from local matches by IATA code
-    // Prioritize local matches at the top
+    // De-duplicate API results from local matches
+    // Prioritize API results as requested by user
     const apiMatches = airports.filter(api =>
       !localMatches.find(l => l.iata === api.iata || (l.name === api.name && l.city === api.city))
     );
 
-    return [...localMatches, ...apiMatches];
+    return [...apiMatches, ...localMatches];
   })();
 
   const showPopularHeader = inputValue.length === 0 && suggestedOptions.length > 0;
@@ -103,11 +104,6 @@ const AirportAutocomplete = ({
       {/* Dropdown */}
       {isOpen && displayOptions.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-elevated overflow-hidden">
-          {inputValue.length < 2 && suggestedOptions.length > 0 && (
-            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
-              Popular Destinations
-            </div>
-          )}
           <div className="max-h-64 overflow-y-auto">
             {displayOptions.map((airport, index) => (
               <button

@@ -39,12 +39,12 @@ const CityAutocomplete = ({
     );
 
     // De-duplicate API results from local matches
-    // Prioritize local matches
+    // Prioritize API results as requested by user
     const apiMatches = cities.filter(api =>
       !localMatches.find(l => l.code === api.code && l.name === api.name)
     );
 
-    return [...localMatches, ...apiMatches];
+    return [...apiMatches, ...localMatches];
   })();
 
   const showPopularHeader = inputValue.length === 0 && suggestedOptions.length > 0;
@@ -98,11 +98,6 @@ const CityAutocomplete = ({
       {/* Dropdown */}
       {isOpen && displayCities.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-elevated overflow-hidden">
-          {inputValue.length === 0 && (
-            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
-              Popular Destinations
-            </div>
-          )}
           <div className="max-h-64 overflow-y-auto">
             {displayCities.map((city, index) => (
               <button
