@@ -6,16 +6,55 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Returning empty results to avoid 500 errors from deprecated Amadeus endpoints.
-    // Users should use the primary hotel search feature.
-    return res.json({
-      data: [],
-      meta: {
-        cityCode: req.query.city || req.query.cityCode,
-        checkInDate: req.query.checkInDate,
-        checkOutDate: req.query.checkOutDate
+    const city = req.query.city || req.query.cityCode || 'Dubai';
+    const checkInDate = req.query.checkInDate;
+    const checkOutDate = req.query.checkOutDate;
+
+    const apiKey = process.env.SERPAPI_KEY;
+    if (!apiKey) {
+      throw new Error('SERPAPI_KEY not configured');
+    }
+
+    const params = {
+      engine: 'google_hotels',
+      q: city,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      adults: '2',
+      currency: 'USD',
+      gl: 'us',
+      hl: 'en',
+      api_key: apiKey
+    };
+
+    console.log('Fetching hotel deals for:', city);
+
+    const response = await axios.get('https://serpapi.com/search.json', { params, timeout: 5000 });
+    const results = response.data;
+    const properties = results.properties || [];
+
+    // Map to frontend expectation
+    const mapped = properties.map((prop, idx) => ({
+      id: prop.property_token || `hotel-${idx}`,
+      hotel: {
+        hotelId: prop.property_token,
+        name: prop.name,
+        cityCode: city,
       },
-      message: 'Hotel deals are temporarily unavailable. Please use the hotel search.'
+      offers: [
+        {
+          price: {
+            total: prop.total_rate?.lowest?.replace(/[^0-9.]/g, '') ||
+              prop.rate_per_night?.lowest?.replace(/[^0-9.]/g, '') || '0',
+            currency: 'USD'
+          }
+        }
+      ]
+    }));
+
+    res.json({
+      data: mapped,
+      message: mapped.length > 0 ? 'Found great hotel deals!' : 'No special hotel deals found.'
     });
   } catch (err) {
     console.error('Hotel deals error:', err.message);
