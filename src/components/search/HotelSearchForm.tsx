@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { 
-  Calendar as CalendarIcon, 
-  Users, 
+import {
+  Calendar as CalendarIcon,
+  Users,
   Search,
   ChevronDown,
   DoorOpen
@@ -25,6 +25,14 @@ const HotelSearchForm = () => {
   const [isGuestOpen, setIsGuestOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const popularCities: City[] = [
+    { code: 'NYC', name: 'New York', country: 'USA', countryName: 'United States' },
+    { code: 'LON', name: 'London', country: 'UK', countryName: 'United Kingdom' },
+    { code: 'PAR', name: 'Paris', country: 'France', countryName: 'France' },
+    { code: 'DXB', name: 'Dubai', country: 'UAE', countryName: 'United Arab Emirates' },
+    { code: 'TYO', name: 'Tokyo', country: 'Japan', countryName: 'Japan' },
+  ];
+
   const handleSearch = () => {
     setFormError(null);
 
@@ -44,7 +52,7 @@ const HotelSearchForm = () => {
     if (dateRange?.to) params.set('checkOut', dateRange.to.toISOString().split('T')[0]);
     params.set('adults', guests.adults.toString());
     params.set('rooms', rooms.toString());
-    
+
     navigate(`/hotels?${params.toString()}`);
   };
 
@@ -67,6 +75,7 @@ const HotelSearchForm = () => {
               setFormError(null);
             }}
             label="Destination"
+            suggestedOptions={popularCities}
           />
         </div>
 

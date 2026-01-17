@@ -14,7 +14,7 @@ export const useAirportSearch = (query: string) => {
 
   useEffect(() => {
     const fetchAirports = async () => {
-      if (!query || query.length < 2) {
+      if (!query || query.length < 1) {
         setAirports([]);
         return;
       }
@@ -40,7 +40,7 @@ export const useAirportSearch = (query: string) => {
       }
     };
 
-    const debounce = setTimeout(fetchAirports, 600);
+    const debounce = setTimeout(fetchAirports, 300);
     return () => clearTimeout(debounce);
   }, [query]);
 
