@@ -25,16 +25,7 @@ serve(async (req) => {
       throw new Error('SERPAPI_KEY not configured');
     }
 
-    // SerpApi Hotels uses a text query 'q'. 
-    const cityMap: Record<string, string> = {
-      'NYC': 'New York, NY',
-      'LON': 'London, UK',
-      'PAR': 'Paris, France',
-      'DXB': 'Dubai, UAE',
-      'TYO': 'Tokyo, Japan'
-    };
-
-    const query = cityMap[cityCode.toUpperCase()] || cityCode;
+    const query = cityCode;
 
     const params = new URLSearchParams({
       engine: 'google_hotels',

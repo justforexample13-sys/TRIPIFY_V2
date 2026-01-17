@@ -9,6 +9,7 @@ interface CityAutocompleteProps {
   onInputChange?: (value: string) => void;
   placeholder?: string;
   label: string;
+  suggestedOptions?: City[];
 }
 
 const CityAutocomplete = ({
@@ -17,12 +18,36 @@ const CityAutocomplete = ({
   onInputChange,
   placeholder = "City, hotel, or landmark",
   label,
+  suggestedOptions = [],
 }: CityAutocompleteProps) => {
   const [inputValue, setInputValue] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const { cities, isLoading } = useCitySearch(inputValue);
+
+  // Combine search results with suggested options
+  const displayCities = (() => {
+    // If input is empty, show the suggested options (popular cities)
+    if (inputValue.length === 0) return suggestedOptions;
+
+    // Convert current search results (from API) into the City interface
+    const localMatches = suggestedOptions.filter(o =>
+      o.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+      o.code.toLowerCase().includes(inputValue.toLowerCase()) ||
+      (o.countryName || o.country || '').toLowerCase().includes(inputValue.toLowerCase())
+    );
+
+    // De-duplicate API results from local matches
+    // Prioritize local matches
+    const apiMatches = cities.filter(api =>
+      !localMatches.find(l => l.code === api.code && l.name === api.name)
+    );
+
+    return [...localMatches, ...apiMatches];
+  })();
+
+  const showPopularHeader = inputValue.length === 0 && suggestedOptions.length > 0;
 
   useEffect(() => {
     setInputValue(value);
@@ -71,12 +96,17 @@ const CityAutocomplete = ({
       </div>
 
       {/* Dropdown */}
-      {isOpen && cities.length > 0 && (
+      {isOpen && displayCities.length > 0 && (
         <div className="absolute z-50 w-full mt-2 bg-card border border-border rounded-xl shadow-elevated overflow-hidden">
+          {inputValue.length === 0 && (
+            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/30">
+              Popular Destinations
+            </div>
+          )}
           <div className="max-h-64 overflow-y-auto">
-            {cities.map((city) => (
+            {displayCities.map((city, index) => (
               <button
-                key={`${city.code}-${city.country || city.countryName || ''}-${city.name}`}
+                key={`${city.code}-${index}`}
                 onClick={() => handleSelect(city)}
                 className={cn(
                   "w-full px-4 py-3 text-left hover:bg-muted/50 transition-colors",

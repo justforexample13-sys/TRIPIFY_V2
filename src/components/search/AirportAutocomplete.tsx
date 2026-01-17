@@ -28,10 +28,30 @@ const AirportAutocomplete = ({
 
   const { airports, isLoading } = useAirportSearch(inputValue);
 
-  // Combine search results with suggested options when input is empty
-  const displayOptions = inputValue.length < 2 && suggestedOptions.length > 0
-    ? suggestedOptions
-    : airports;
+  // Combine search results with suggested options
+  const displayOptions = (() => {
+    // If input is empty, show the suggested options (popular origins/destinations)
+    if (inputValue.length === 0) return suggestedOptions;
+
+    // Convert current search results (from API) into the Airport interface
+    // Note: the backend now returns many results, some might already be in suggestedOptions
+
+    const localMatches = suggestedOptions.filter(o =>
+      o.city.toLowerCase().includes(inputValue.toLowerCase()) ||
+      o.iata.toLowerCase().includes(inputValue.toLowerCase()) ||
+      o.name.toLowerCase().includes(inputValue.toLowerCase())
+    );
+
+    // De-duplicate API results from local matches by IATA code
+    // Prioritize local matches at the top
+    const apiMatches = airports.filter(api =>
+      !localMatches.find(l => l.iata === api.iata || (l.name === api.name && l.city === api.city))
+    );
+
+    return [...localMatches, ...apiMatches];
+  })();
+
+  const showPopularHeader = inputValue.length === 0 && suggestedOptions.length > 0;
 
   useEffect(() => {
     setInputValue(value);

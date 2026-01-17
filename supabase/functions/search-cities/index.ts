@@ -12,9 +12,8 @@ serve(async (req) => {
 
   try {
     const { query } = await req.json();
-    console.log('Searching cities for:', query);
 
-    if (!query || query.length < 1) {
+    if (!query) {
       return new Response(JSON.stringify({ cities: [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -25,6 +24,8 @@ serve(async (req) => {
       throw new Error('SERPAPI_KEY not configured');
     }
 
+    console.log('Searching cities via SerpApi for:', query);
+
     const params = new URLSearchParams({
       engine: 'google_flights_autocomplete',
       q: query,
@@ -33,27 +34,27 @@ serve(async (req) => {
       gl: 'us'
     });
 
-    const response = await fetch(`https://serpapi.com/search.json?${params.toString()}`);
+    const url = `https://serpapi.com/search.json?${params.toString()}`;
 
-    if (!response.ok) {
-      throw new Error(`SerpApi error: ${response.status}`);
-    }
-
+    const response = await fetch(url);
     const results = await response.json();
+
+    // SerpApi returns suggestions in 'suggestions' array
     const suggestions = results.suggestions || [];
 
-    const cities = suggestions
-      .filter((item: any) => item.id && item.id.length === 3)
-      .map((item: any) => ({
-        code: item.id,
-        name: item.title,
-        country: item.subtitle,
-        countryName: item.subtitle,
-      }));
+    const cities = suggestions.map((item: any) => ({
+      code: item.id,
+      name: item.title,
+      country: item.subtitle || '',
+      countryName: item.subtitle || '',
+      skyId: item.id,
+      entityId: item.id
+    })).filter((item: any) => item.code);
 
     return new Response(JSON.stringify({ cities }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error: any) {
     console.error('Error in search-cities:', error);
     return new Response(JSON.stringify({ error: error.message, cities: [] }), {

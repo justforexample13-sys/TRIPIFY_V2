@@ -25,11 +25,20 @@ const HotelSearchForm = () => {
   const [isGuestOpen, setIsGuestOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const popularCities: City[] = [
+    { code: 'NYC', name: 'New York', country: 'USA', countryName: 'United States' },
+    { code: 'LON', name: 'London', country: 'UK', countryName: 'United Kingdom' },
+    { code: 'PAR', name: 'Paris', country: 'France', countryName: 'France' },
+    { code: 'DXB', name: 'Dubai', country: 'UAE', countryName: 'United Arab Emirates' },
+    { code: 'TYO', name: 'Tokyo', country: 'Japan', countryName: 'Japan' },
+    { code: 'SIN', name: 'Singapore', country: 'Singapore', countryName: 'Singapore' },
+  ];
+
   const handleSearch = () => {
     setFormError(null);
 
-    if (!selectedCity?.code) {
-      setFormError('Please select a destination from the list');
+    if (!selectedCity?.code && !destinationValue.trim()) {
+      setFormError('Please enter a destination');
       return;
     }
 
@@ -39,7 +48,11 @@ const HotelSearchForm = () => {
     }
 
     const params = new URLSearchParams();
-    if (selectedCity?.code) params.set('city', selectedCity.code);
+    if (selectedCity?.code) {
+      params.set('city', selectedCity.code);
+    } else {
+      params.set('city', destinationValue.trim());
+    }
     if (dateRange?.from) params.set('checkIn', dateRange.from.toISOString().split('T')[0]);
     if (dateRange?.to) params.set('checkOut', dateRange.to.toISOString().split('T')[0]);
     params.set('adults', guests.adults.toString());
@@ -56,6 +69,7 @@ const HotelSearchForm = () => {
         <div className="lg:col-span-4 relative">
           <CityAutocomplete
             value={destinationValue}
+            suggestedOptions={popularCities}
             onInputChange={(val) => {
               setDestinationValue(val);
               setSelectedCity(null);
@@ -219,7 +233,7 @@ const HotelSearchForm = () => {
           size="xl"
           onClick={handleSearch}
           className="min-w-[200px]"
-          disabled={!selectedCity?.code || !dateRange?.from || !dateRange?.to}
+          disabled={(!selectedCity?.code && !destinationValue.trim()) || !dateRange?.from || !dateRange?.to}
         >
           <Search className="w-5 h-5 mr-2" />
           Search Hotels

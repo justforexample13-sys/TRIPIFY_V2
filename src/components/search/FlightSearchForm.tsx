@@ -68,6 +68,31 @@ const FlightSearchForm = () => {
     { iata: 'BKK', name: 'Bangkok', city: 'Bangkok', country: 'Thailand' },
   ];
 
+  // Hub-specific destinations for "To" field dependency
+  const hubDestinations: Record<string, Airport[]> = {
+    'DXB': [
+      { iata: 'LHR', name: 'London Heathrow', city: 'London', country: 'UK' },
+      { iata: 'CDG', name: 'Paris Charles de Gaulle', city: 'Paris', country: 'France' },
+      { iata: 'SIN', name: 'Changi Airport', city: 'Singapore', country: 'Singapore' },
+      { iata: 'BKK', name: 'Suvarnabhumi', city: 'Bangkok', country: 'Thailand' },
+      { iata: 'JFK', name: 'John F. Kennedy', city: 'New York', country: 'USA' },
+    ],
+    'LHR': [
+      { iata: 'JFK', name: 'John F. Kennedy', city: 'New York', country: 'USA' },
+      { iata: 'DXB', name: 'Dubai International', city: 'Dubai', country: 'UAE' },
+      { iata: 'CDG', name: 'Paris Charles de Gaulle', city: 'Paris', country: 'France' },
+      { iata: 'AMS', name: 'Schiphol', city: 'Amsterdam', country: 'Netherlands' },
+      { iata: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'USA' },
+    ],
+    'JFK': [
+      { iata: 'LHR', name: 'London Heathrow', city: 'London', country: 'UK' },
+      { iata: 'CDG', name: 'Paris Charles de Gaulle', city: 'Paris', country: 'France' },
+      { iata: 'LAX', name: 'Los Angeles Intl', city: 'Los Angeles', country: 'USA' },
+      { iata: 'SFO', name: 'San Francisco Intl', city: 'San Francisco', country: 'USA' },
+      { iata: 'MIA', name: 'Miami Intl', city: 'Miami', country: 'USA' },
+    ]
+  };
+
   // Convert "Destinations" to "Airports" format for the autocomplete suggestions
   const apiSuggestions: Airport[] = destinations.map(d => ({
     iata: d.destination,
@@ -76,7 +101,12 @@ const FlightSearchForm = () => {
     country: ''
   }));
 
-  const suggestedAirports = apiSuggestions.length > 0 ? apiSuggestions : popularFallbacks;
+  const suggestedAirports = (() => {
+    if (fromAirport?.iata && hubDestinations[fromAirport.iata]) {
+      return hubDestinations[fromAirport.iata];
+    }
+    return apiSuggestions.length > 0 ? apiSuggestions : popularFallbacks;
+  })();
 
   const swapLocations = () => {
     const tempAirport = fromAirport;
